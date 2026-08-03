@@ -18,7 +18,7 @@
     .btn-primary { background: #2563eb; color: #fff; }
     .btn-outline { background: transparent; border: 1px solid #2563eb; color: #2563eb; }
     .result-box { background: #0a0c12; padding: 16px; border-radius: 14px; border: 1px solid #1e2a3a; font-family: monospace; font-size: 13px; white-space: pre-wrap; max-height: 280px; overflow-y: auto; margin-top: 10px; color: #a0f0c0; }
-    .map-container { height: 320px; border-radius: 14px; margin-top: 16px; overflow: hidden; background: #0a0c12; border: 1px solid #1e2a3a; }
+    .map-container { height: 220px; border-radius: 14px; margin-top: 16px; overflow: hidden; background: #0a0c12; border: 1px solid #1e2a3a; }
     .map-container iframe { width: 100%; height: 100%; border: none; }
     .footer-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; flex-wrap: wrap; gap: 10px; }
     .badge { background: #1e2a3a; padding: 5px 16px; border-radius: 24px; font-size: 13px; color: #94a3b8; }
@@ -38,9 +38,7 @@
       <button class="btn-outline" onclick="myIP()">📡 IP Saya</button>
     </div>
     <div class="result-box" id="result">⚡ Masukkan IP atau klik "IP Saya"</div>
-    <div class="map-container" id="mapContainer">
-      <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d126856.333719067!2d106.845493!3d-6.208678!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sid!2sid!4v1690000000000" allowfullscreen loading="lazy"></iframe>
-    </div>
+    <div class="map-container" id="mapContainer"><iframe src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d126856.333719067!2d106.845493!3d-6.208678!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sid!2sid!4v1690000000000" allowfullscreen loading="lazy"></iframe></div>
     <div class="footer-bar">
       <span class="badge" id="status">Belum ada data</span>
       <button class="btn-copy" onclick="copyJSON()">📋 Salin JSON</button>
@@ -53,8 +51,8 @@
   let currentData = null;
 
   function updateMap(lat, lng) {
-    const map = document.getElementById('mapContainer');
-    map.innerHTML = `<iframe src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d126856.333719067!2d${lng}!3d${lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sid!2sid!4v1690000000000" allowfullscreen loading="lazy"></iframe>`;
+    document.getElementById('mapContainer').innerHTML =
+      `<iframe src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d126856.333719067!2d${lng}!3d${lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sid!2sid!4v1690000000000" allowfullscreen loading="lazy"></iframe>`;
   }
 
   function displayData(data) {
