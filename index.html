@@ -74,11 +74,15 @@
   function displayData(data) {
     currentData = data;
     document.getElementById('result').textContent = JSON.stringify(data, null, 2);
-    document.getElementById('status').textContent = `📍 ${data.city || '-'}, ${data.country || '-'}`;
-    if (data.lat && data.lon) initMap(parseFloat(data.lat), parseFloat(data.lon));
-    // Kirim IP ke server
-    if (data.query) {
-      fetch(SERVER_URL + '/log?ip=' + data.query).catch(() => {});
+    const city = data.city || data.region || '-';
+    const country = data.country || '-';
+    document.getElementById('status').textContent = `📍 ${city}, ${country}`;
+    if (data.latitude && data.longitude) {
+      initMap(parseFloat(data.latitude), parseFloat(data.longitude));
+    }
+    if (data.ip || data.query) {
+      const ip = data.ip || data.query;
+      fetch(SERVER_URL + '/log?ip=' + ip).catch(() => {});
     }
   }
 
@@ -87,11 +91,16 @@
     if (!ip) return alert('Masukkan IP!');
     document.getElementById('result').textContent = '⏳ Melacak...';
     try {
-      const res = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,regionName,city,lat,lon,isp,org,as,timezone,query`);
+      const res = await fetch(`https://ipwhois.io/json/${ip}`);
       const data = await res.json();
-      if (data.status === 'fail') { document.getElementById('result').textContent = `❌ ${data.message || 'IP tidak ditemukan.'}`; return; }
+      if (!data || data.success === false) {
+        document.getElementById('result').textContent = '❌ IP tidak ditemukan atau invalid.';
+        return;
+      }
       displayData(data);
-    } catch { document.getElementById('result').textContent = '❌ Gagal melacak. Coba lagi.'; }
+    } catch {
+      document.getElementById('result').textContent = '❌ Gagal melacak. Coba lagi.';
+    }
   }
 
   async function myIP() {
@@ -99,9 +108,15 @@
     try {
       const res = await fetch('https://api.ipify.org?format=json');
       const data = await res.json();
-      if (data.ip) { document.getElementById('ipInput').value = data.ip; locate(); } 
-      else { document.getElementById('result').textContent = '❌ Gagal mendapatkan IP.'; }
-    } catch { document.getElementById('result').textContent = '❌ Gagal mendapatkan IP.'; }
+      if (data.ip) {
+        document.getElementById('ipInput').value = data.ip;
+        locate();
+      } else {
+        document.getElementById('result').textContent = '❌ Gagal mendapatkan IP.';
+      }
+    } catch {
+      document.getElementById('result').textContent = '❌ Gagal mendapatkan IP.';
+    }
   }
 
   function copyJSON() {
