@@ -92,45 +92,18 @@
     document.getElementById('result').textContent = '⏳ Melacak...';
     
     try {
-      // API utama: ip-api.com (stabil, cepat)
-      const res = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,regionName,city,lat,lon,isp,org,as,timezone,query`);
+      // Gunakan ipwhois.io (tidak diblokir di Indonesia)
+      const res = await fetch(`https://ipwhois.io/json/${ip}`);
       const data = await res.json();
       
-      if (data.status === 'fail') {
-        // Fallback 1: ipwhois.io
-        const res2 = await fetch(`https://ipwhois.io/json/${ip}`);
-        const data2 = await res2.json();
-        if (data2 && data2.success !== false) {
-          displayData(data2);
-          return;
-        }
-        document.getElementById('result').textContent = `❌ ${data.message || 'IP tidak ditemukan.'}`;
+      if (!data || data.success === false) {
+        document.getElementById('result').textContent = '❌ IP tidak ditemukan atau invalid.';
         return;
       }
       
-      displayData({
-        ip: data.query,
-        country: data.country,
-        region: data.regionName,
-        city: data.city,
-        latitude: data.lat,
-        longitude: data.lon,
-        org: data.org,
-        isp: data.isp,
-        asn: data.as,
-        timezone: data.timezone
-      });
+      displayData(data);
       
     } catch (error) {
-      // Fallback 2: ipwhois.io langsung
-      try {
-        const res3 = await fetch(`https://ipwhois.io/json/${ip}`);
-        const data3 = await res3.json();
-        if (data3 && data3.success !== false) {
-          displayData(data3);
-          return;
-        }
-      } catch {}
       document.getElementById('result').textContent = '❌ Gagal melacak. Coba lagi.';
     }
   }
