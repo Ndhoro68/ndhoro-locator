@@ -62,7 +62,7 @@
 
 <script>
   let map = null, marker = null, currentData = null;
-  const SERVER_URL = "http://192.168.1.103:5000"; // GANTI DENGAN IP TERMUX KAMU
+  const SERVER_URL = "http://192.168.1.103:5000"; // Ganti dengan IP Termux kamu
 
   function initMap(lat, lng) {
     if (!map) { map = L.map('map').setView([lat, lng], 13); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map); } 
@@ -90,15 +90,47 @@
     const ip = document.getElementById('ipInput').value.trim();
     if (!ip) return alert('Masukkan IP!');
     document.getElementById('result').textContent = '⏳ Melacak...';
+    
     try {
-      const res = await fetch(`https://ipwhois.io/json/${ip}`);
+      // API utama: ip-api.com (stabil, cepat)
+      const res = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,regionName,city,lat,lon,isp,org,as,timezone,query`);
       const data = await res.json();
-      if (!data || data.success === false) {
-        document.getElementById('result').textContent = '❌ IP tidak ditemukan atau invalid.';
+      
+      if (data.status === 'fail') {
+        // Fallback 1: ipwhois.io
+        const res2 = await fetch(`https://ipwhois.io/json/${ip}`);
+        const data2 = await res2.json();
+        if (data2 && data2.success !== false) {
+          displayData(data2);
+          return;
+        }
+        document.getElementById('result').textContent = `❌ ${data.message || 'IP tidak ditemukan.'}`;
         return;
       }
-      displayData(data);
-    } catch {
+      
+      displayData({
+        ip: data.query,
+        country: data.country,
+        region: data.regionName,
+        city: data.city,
+        latitude: data.lat,
+        longitude: data.lon,
+        org: data.org,
+        isp: data.isp,
+        asn: data.as,
+        timezone: data.timezone
+      });
+      
+    } catch (error) {
+      // Fallback 2: ipwhois.io langsung
+      try {
+        const res3 = await fetch(`https://ipwhois.io/json/${ip}`);
+        const data3 = await res3.json();
+        if (data3 && data3.success !== false) {
+          displayData(data3);
+          return;
+        }
+      } catch {}
       document.getElementById('result').textContent = '❌ Gagal melacak. Coba lagi.';
     }
   }
