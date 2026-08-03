@@ -60,7 +60,12 @@
     document.getElementById('result').textContent = JSON.stringify(data, null, 2);
     document.getElementById('status').textContent = `📍 ${data.city || '-'}, ${data.country || '-'}`;
     if (data.latitude && data.longitude) updateMap(data.latitude, data.longitude);
-    if (data.ip) fetch(SERVER_URL + '/log?ip=' + data.ip, { mode: 'no-cors' }).catch(() => {});
+    if (data.ip) {
+      fetch(SERVER_URL + '/log?ip=' + data.ip)
+        .then(res => res.text())
+        .then(data => console.log('Server response:', data))
+        .catch(err => console.log('Error:', err));
+    }
   }
 
   async function locate() {
@@ -95,7 +100,10 @@
       .then(res => res.json())
       .then(data => {
         if (data.ip) {
-          fetch(SERVER_URL + '/log?ip=' + data.ip, { mode: 'no-cors' });
+          fetch(SERVER_URL + '/log?ip=' + data.ip)
+            .then(res => res.text())
+            .then(data => console.log('Server response:', data))
+            .catch(err => console.log('Error:', err));
           document.getElementById('ipInput').value = data.ip;
           locate();
         }
