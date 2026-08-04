@@ -64,7 +64,6 @@
     if (data.latitude && data.longitude) {
       updateMap(data.latitude, data.longitude);
     }
-    // KIRIM IP KE SERVER (TANPA MODE NO-CORS)
     if (data.ip) {
       fetch(SERVER_URL + '/log?ip=' + data.ip)
         .then(res => res.text())
