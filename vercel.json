@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/v/:token", "destination": "/api/v?t=:token" }
+  ]
+}
